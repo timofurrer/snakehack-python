@@ -45,9 +45,19 @@ def create_matrix(width, height, snakes):
     Create two dim array with snakes
     """
     snakes_coords = itertools.chain(*[x['coords'] for x in snakes])
-    matrix = np.zeros(shape=(width, height))
+    matrix = np.ones(shape=(width, height))
+
+    center = [math.ceil(height/2), math.ceil(width/2)]
+    """ setup main cost of map """
+    maxcost = math.floor(calc_dist([0, 0], center))
+    for x, row in enumerate(matrix):
+        for y, col in enumerate(row):
+            matrix[y][x] += math.floor(calc_dist([y, x], center) / maxcost * 10)
+
     for x, y in snakes_coords:
-        matrix[y][x] = 1
+        matrix[y][x] = 0
+
+    """ append cost around snake head """
     return matrix
 
 
