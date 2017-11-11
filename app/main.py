@@ -7,6 +7,9 @@ import numpy as np
 
 from bstar import PathFinder
 
+EAT = 0x01
+ATTACK = 0x02
+
 
 @bottle.route('/static/<path:path>')
 def static(path):
@@ -63,53 +66,39 @@ def get_move(start, end):
     print('Choose random move')
     return 'up'
 
-#def attack(finder, our_snake, enemies):
-#    """ attacks closest smaller enemy """
-#    # filter only smaller enemies
-#    enemie_heads = [tuple(x['coords'][0]) for x in enemies if len(x['coords']) < len(our_snake['coords'])]
-#    print(enemie_heads)
-#
-#    # TODO: find if path is possible
-#    # find closest enemy
-#    our_head = tuple(our_snake['coords'][0])
-#    closest_enemy = get_closest_food(our_snake, enemie_heads)
-#    print(closest_enemy)
-#    astar_path = list(finder.astar(our_head, closest_enemy))
-#
-#    next_coord = astar_path[1]
-#    move = get_move(our_head, next_coord)
-#
-#    print(move)
-#
-#    return move
-
-def get_closest_food(head, foods):
+def get_closest_point(head, foods):
     return sorted(foods, key=lambda p: math.fabs(head[0] - p[0])**2 + math.fabs(head[1] - p[1])**2)
 
 
 def go_for_food(finder, head, foods):
     astar_path = None
-    sorted_foods = get_closest_food(head, foods)
+    sorted_foods = get_closest_point(head, foods)
     for food in sorted_foods:
         astar_path = finder.astar(head, tuple(food))
         if astar_path is not None:
             break
+    try:
+        return list(astar_path)[1], 'eat'
+    except TypeError:
+        return None, None
 
-    return list(astar_path)[1]
 
-
-def go_for_attack(finder, our_snake, enemies):
+def go_for_attack(finder, our_head, our_snake, enemies):
     astar_path = None
-    head = tuple(our_snake['coords'][0])
-    enemie_heads = [tuple(x['coords'][0]) for x in enemies if len(x['coords']) < len(our_snake['coords'])]
-    print(enemie_heads)
-    sorted_enemies = get_closest_food(head, enemie_heads)
-    for enemie in sorted_enemies:
-        astar_path = finder.astar(head, tuple(enemie))
+    enemy_heads = [x['coords'][0:2] for x in enemies if len(x['coords']) < len(our_snake['coords'])]
+    sorted_enemies = sorted(enemy_heads,
+            key=lambda p: math.fabs(our_head[0] - p[0][0])**2 + math.fabs(our_head[1] - p[0][1])**2)
+    for enemy in sorted_enemies:
+        enemy_head, enemy_body = enemy
+        predicted_enemy_pos = enemy_head[0] + (enemy_head[0] - enemy_body[0]), enemy_head[1] + (enemy_head[1] - enemy_body[1])
+        astar_path = finder.astar(our_head, predicted_enemy_pos)
         if astar_path is not None:
             break
 
-    return list(astar_path)[1]
+    try:
+        return list(astar_path)[1], 'attack!'
+    except TypeError:
+        return None, None
 
 
 @bottle.post('/move')
@@ -122,23 +111,32 @@ def move():
     print(matrix)
 
     our_snake = next((x for x in data['snakes'] if x['id'] == data['you']), None)
-    # our_head = tuple(reversed(fix_y_coord(our_snake['coords'][0])))
     our_head = tuple(our_snake['coords'][0])
     print(our_snake)
     print('Head', our_head)
 
     enemies = [x for x in data['snakes'] if x['id'] != data['you']]
-    print(enemies)
+    print('Enemies', enemies)
 
     finder = PathFinder(data['width'], data['height'], matrix)
-#    next_coord = go_for_food(finder, our_head, data['food'])
-    next_coord = go_for_attack(finder, our_snake, enemies)
+
+    # check health
+    next_coord = None
+    health = our_snake['health_points']
+
+    if int(health) >= 60:
+        print('Health point >= 60 -> TRY TO ATTACK')
+        next_coord, taunt = go_for_attack(finder, our_head, our_snake, enemies)
+
+    if next_coord is None:
+        next_coord, taunt = go_for_food(finder, our_head, data['food'])
+
     move = get_move(our_head, next_coord)
 
     return {
         # 'move': random.choice(directions),
         'move': move,
-        'taunt': 'snakehack-python!'
+        'taunt': taunt
     }
 
 
