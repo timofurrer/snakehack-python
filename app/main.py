@@ -44,7 +44,7 @@ def create_matrix(width, height, snakes):
     """
     Create two dim array with snakes
     """
-    snakes_coords = itertools.chain(*[x['coords'] for x in snakes])
+    snakes_coords = itertools.chain(*[x['coords'][0:-1] for x in snakes])
     matrix = np.zeros(shape=(width, height))
     for x, y in snakes_coords:
         matrix[y][x] = 1
