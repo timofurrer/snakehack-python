@@ -26,6 +26,6 @@ class PathFinder(AStar):
         possible_nodes = [(nx, ny) for nx, ny in [(x, y - 1), (x, y + 1), (x - 1, y), (x + 1, y)]
                 if 0 <= nx < self.width and 0 <= ny < self.height and self.grid[ny][nx] == 0]
 
-        print('Got node', node)
-        print('possible_nodes', possible_nodes)
+        # print('Got node', node)
+        # print('possible_nodes', possible_nodes)
         return possible_nodes

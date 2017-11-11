@@ -65,14 +65,7 @@ def get_move(start, end):
 
 
 def get_closest_food(head, foods):
-    min_d = 20000000000000
-    closest_food = foods[0]
-    for x, y in foods:
-        d = math.fabs(head[0] - x)**2 + math.fabs(head[1] - y)**2
-        if d < min_d:
-            min_d = d
-            closest_food = x, y
-    return closest_food
+    return sorted(foods, key=lambda p: math.fabs(head[0] - p[0])**2 + math.fabs(head[1] - p[1])**2)
 
 
 @bottle.post('/move')
@@ -88,18 +81,18 @@ def move():
     # our_head = tuple(reversed(fix_y_coord(our_snake['coords'][0])))
     our_head = tuple(our_snake['coords'][0])
     print(our_snake)
+    print('Head', our_head)
 
     finder = PathFinder(data['width'], data['height'], matrix)
 
-    next_food = tuple(get_closest_food(our_head, data['food']))
+    astar_path = None
+    sorted_foods = get_closest_food(our_head, data['food'])
+    for food in sorted_foods:
+        astar_path = finder.astar(our_head, tuple(food))
+        if astar_path is not None:
+            break
 
-    print('Head', our_head)
-    print('Food', next_food)
-
-    astar_path = list(finder.astar(our_head, next_food))
-    print(astar_path)
-
-    next_coord = astar_path[1]
+    next_coord = list(astar_path)[1]
     move = get_move(our_head, next_coord)
 
     print(move)
