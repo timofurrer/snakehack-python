@@ -68,6 +68,17 @@ def get_closest_food(head, foods):
     return sorted(foods, key=lambda p: math.fabs(head[0] - p[0])**2 + math.fabs(head[1] - p[1])**2)
 
 
+def go_for_food(finder, head, foods):
+    astar_path = None
+    sorted_foods = get_closest_food(head, foods)
+    for food in sorted_foods:
+        astar_path = finder.astar(head, tuple(food))
+        if astar_path is not None:
+            break
+
+    return list(astar_path)[1]
+
+
 @bottle.post('/move')
 def move():
     data = bottle.request.json
@@ -84,21 +95,10 @@ def move():
     print('Head', our_head)
 
     finder = PathFinder(data['width'], data['height'], matrix)
-
-    astar_path = None
-    sorted_foods = get_closest_food(our_head, data['food'])
-    for food in sorted_foods:
-        astar_path = finder.astar(our_head, tuple(food))
-        if astar_path is not None:
-            break
-
-    next_coord = list(astar_path)[1]
+    next_coord = go_for_food(finder, our_head, data['food'])
     move = get_move(our_head, next_coord)
 
     print(move)
-
-    # TODO: Do things with data
-    directions = ['up', 'down', 'left', 'right']
 
     return {
         # 'move': random.choice(directions),
