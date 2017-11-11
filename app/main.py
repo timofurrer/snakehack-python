@@ -40,14 +40,22 @@ def start():
     }
 
 
-def create_matrix(width, height, snakes):
+def create_matrix(width, height, our_snake, enemy_snakes):
     """
     Create two dim array with snakes
     """
-    snakes_coords = itertools.chain(*[x['coords'][0:-1] for x in snakes])
+    # add possible next head points to enemy snakes
+    for enemy in enemy_snakes:
+        x, y = enemy['coords'][0]
+        enemy['coords'].extend([(x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)])
+
+    print('Our snake', our_snake)
+    print('enemy snakes', enemy_snakes)
+    snakes_coords = itertools.chain(*[x['coords'][0:-1] for x in [our_snake] + enemy_snakes])
     matrix = np.zeros(shape=(width, height))
     for x, y in snakes_coords:
-        matrix[y][x] = 1
+        if 0 <= x < width and 0 <= y < height:
+            matrix[y][x] = 1
     return matrix
 
 
@@ -128,15 +136,14 @@ def move():
 
     print(data)
 
-    matrix = create_matrix(data['width'], data['height'], data['snakes'])
+    our_snake = next((x for x in data['snakes'] if x['id'] == data['you']), None)
+    enemies = [x for x in data['snakes'] if x['id'] != data['you']]
+    matrix = create_matrix(data['width'], data['height'], our_snake, enemies)
     print(matrix)
 
-    our_snake = next((x for x in data['snakes'] if x['id'] == data['you']), None)
     our_head = tuple(our_snake['coords'][0])
     print(our_snake)
     print('Head', our_head)
-
-    enemies = [x for x in data['snakes'] if x['id'] != data['you']]
 
     finder = PathFinder(data['width'], data['height'], matrix)
 
@@ -172,6 +179,8 @@ def move():
         i += 1
 
     move = get_move(our_head, next_coord)
+    print('move from {0} to {1} with {2}'.format(
+        our_head, next_coord, move))
 
     print('Duration', (time.time() - starttime) / 1000.0)
 
