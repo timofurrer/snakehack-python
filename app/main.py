@@ -33,7 +33,7 @@ def start():
     # TODO: Do things with data
 
     return {
-        'color': '#ff00ff',
+        'color': '#910052',
         'taunt': '{} ({}x{})'.format(game_id, board_width, board_height),
         'head_url': head_url,
         'head_type': 'sand-worm',
@@ -87,7 +87,7 @@ def create_matrix(width, height, our_snake, enemy_snakes):
 def set_heap_map(matrix, width, height, x, y):
     if x >= 0 and y >= 0 and x < width and y < height and matrix[y][x] != 0:
         matrix[y][x] += 1
-    
+
 
 
 def get_move(start, end):
