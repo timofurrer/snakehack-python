@@ -129,7 +129,7 @@ def move():
     health = our_snake['health_points']
     snake_length = len(our_snake['coords'])
 
-    if snake_length >= 5 and int(health) >= 60:
+    if snake_length >= 10 and int(health) >= 60:
         print('Health point >= 60 -> TRY TO ATTACK')
         next_coord, taunt = go_for_attack(finder, our_head, our_snake, enemies)
         # check distance
