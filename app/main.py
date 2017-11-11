@@ -50,19 +50,20 @@ def fix_y_coord(point):
 
 def get_move(start, end):
     # check single move
-    if start[0] == end[0]:
-        if end[1] > start[1]:
-            return 'right'
-        else:
-            return 'left'
+    x = end[0] - start[0]
+    if x > 0:
+        return 'right'
+    elif x < 0:
+        return 'left'
 
-    if start[1] == end[1]:
-        if end[0] > start[1]:
-            return 'down'
-        else:
-            return 'up'
+    y = end[1] - start[1]
+    if y > 0:
+        return 'down'
+    elif y > 0:
+        return 'up'
 
-    # double stage move
+    print('Choose random move')
+    return 'up'
 
 
 @bottle.post('/move')
@@ -76,22 +77,25 @@ def move():
     print(matrix)
 
     our_snake = next((x for x in data['snakes'] if x['id'] == data['you']), None)
-    our_head = reversed(fix_y_coord(our_snake['coords'][0]))
+    # our_head = tuple(reversed(fix_y_coord(our_snake['coords'][0])))
+    our_head = tuple(fix_y_coord(our_snake['coords'][0]))
     print(our_snake)
 
-    next_food = reversed(fix_y_coord(data['food'][0]))
+    next_food = tuple(fix_y_coord(data['food'][0]))
 
-    astar_path = astar(matrix, tuple(our_head), tuple(next_food))
+    astar_path = astar(matrix, our_head, next_food)
     print(astar_path)
     next_coord = astar_path[-1]
     move = get_move(our_head, next_coord)
+
+    print(move)
 
     # TODO: Do things with data
     directions = ['up', 'down', 'left', 'right']
 
     return {
         # 'move': random.choice(directions),
-        'move': 'up',
+        'move': move,
         'taunt': 'snakehack-python!'
     }
 
