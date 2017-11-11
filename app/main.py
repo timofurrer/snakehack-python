@@ -33,7 +33,7 @@ def start():
     # TODO: Do things with data
 
     return {
-        'color': '#910052',
+        'color': '#ff00ff',
         'taunt': '{} ({}x{})'.format(game_id, board_width, board_height),
         'head_url': head_url,
         'head_type': 'sand-worm',
@@ -60,18 +60,34 @@ def create_matrix(width, height, our_snake, enemy_snakes):
 
     center = [math.ceil(height/2), math.ceil(width/2)]
     maxcost = math.floor(calc_dist([0, 0], center))
+    bordercostvalue=5
     for x, row in enumerate(matrix):
         for y, col in enumerate(row):
-            matrix[y][x] += math.floor(calc_dist([y, x], center) / maxcost * 10) + 1
+            matrix[y][x] += math.floor(calc_dist([y, x], center) / maxcost * bordercostvalue) + 1
 
+    HEATMAP=2
     for x, y in snakes_coords:
         if 0 <= x < width and 0 <= y < height:
             if (x, y) in [e['coords'][-1] for e in enemy_snakes]:
                 matrix[y][x] = 1
             else:
                 matrix[y][x] = 0
-
+                for j in range(HEATMAP):
+                    i = j + 1
+                    set_heap_map(matrix, width, height, x+1, y)
+                    set_heap_map(matrix, width, height, x-1, y)
+                    set_heap_map(matrix, width, height, x, y+i)
+                    set_heap_map(matrix, width, height, x, y-i)
+                    set_heap_map(matrix, width, height, x-i, y-i)
+                    set_heap_map(matrix, width, height, x+i, y+i)
+                    set_heap_map(matrix, width, height, x-i, y+i)
+                    set_heap_map(matrix, width, height, x+i, y-i)
     return matrix
+
+def set_heap_map(matrix, width, height, x, y):
+    if x >= 0 and y >= 0 and x < width and y < height and matrix[y][x] != 0:
+        matrix[y][x] += 1
+    
 
 
 def get_move(start, end):
