@@ -1,6 +1,7 @@
 import bottle
 import os
 import itertools
+import math
 
 import numpy as np
 
@@ -34,10 +35,11 @@ def start():
     }
 
 
-def create_matrix(width, height, snakes_coords):
+def create_matrix(width, height, snakes):
     """
     Create two dim array with snakes
     """
+    snakes_coords = itertools.chain(*[x['coords'] for x in snakes])
     matrix = np.zeros(shape=(width, height))
     for x, y in snakes_coords:
         matrix[y][x] = 1
@@ -62,14 +64,24 @@ def get_move(start, end):
     return 'up'
 
 
+def get_closest_food(head, foods):
+    min_d = 20000000000000
+    closest_food = foods[0]
+    for x, y in foods:
+        d = math.fabs(head[0] - x)**2 + math.fabs(head[1] - y)**2
+        if d < min_d:
+            min_d = d
+            closest_food = x, y
+    return closest_food
+
+
 @bottle.post('/move')
 def move():
     data = bottle.request.json
 
     print(data)
 
-    snakes_coords = itertools.chain(*[x['coords'] for x in data['snakes']])
-    matrix = create_matrix(data['width'], data['height'], snakes_coords)
+    matrix = create_matrix(data['width'], data['height'], data['snakes'])
     print(matrix)
 
     our_snake = next((x for x in data['snakes'] if x['id'] == data['you']), None)
@@ -79,10 +91,7 @@ def move():
 
     finder = PathFinder(data['width'], data['height'], matrix)
 
-    next_food = tuple(data['food'][0])
-
-    # astar_path = astar(matrix, our_head, next_food)
-    # print(astar_path)
+    next_food = tuple(get_closest_food(our_head, data['food']))
 
     print('Head', our_head)
     print('Food', next_food)
@@ -103,9 +112,6 @@ def move():
         'move': move,
         'taunt': 'snakehack-python!'
     }
-
-
-# def create_matrix(width, height,
 
 
 # Expose WSGI app (so gunicorn can find it)
