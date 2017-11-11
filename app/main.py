@@ -36,6 +36,9 @@ def start():
         'color': '#910052',
         'taunt': '{} ({}x{})'.format(game_id, board_width, board_height),
         'head_url': head_url,
+        'head_type': 'sand-worm',
+        'tail_type': "curled",
+        'secondary_color': '#fefefe',
         'name': 'William Snakespeare'
     }
 
