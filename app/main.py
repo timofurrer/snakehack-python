@@ -96,7 +96,20 @@ def go_for_attack(finder, our_head, our_snake, enemies):
 
     for enemy in sorted_enemies:
         enemy_head, enemy_body = enemy
-        predicted_enemy_pos = enemy_head[0] + (enemy_head[0] - enemy_body[0]), enemy_head[1] + (enemy_head[1] - enemy_body[1])
+        own_head, own_body = our_snake['coords'][0:2]
+
+        enemy_vector = (enemy_head[0] - enemy_body[0], enemy_head[1] - enemy_body[1])
+        own_vector = (own_head[0] - own_body[0], own_head[1] - own_body[1])
+        print("Own Vector: {}".format(own_vector))
+        print("Enemy Vector: {}".format(enemy_vector))
+
+        predicted_enemy_pos = (enemy_head[0] + enemy_vector[0], enemy_head[1] + enemy_vector[1])
+        # don't attack this enemy if they look in the same direction
+        distance_vector = (own_vector[0] - enemy_vector[0], own_vector[1] - enemy_vector[1])
+        print("Distance Vector: {}".format(distance_vector))
+        if distance_vector[0] == 0 and distance_vector[1] == 0:
+            print("Enemy and Snake look in the same direction skip this enemy!!")
+            break
         astar_path = finder.astar(our_head, predicted_enemy_pos)
         if astar_path is not None:
             break
