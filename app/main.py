@@ -50,15 +50,27 @@ def create_matrix(width, height, our_snake, enemy_snakes):
     # add possible next head points to enemy snakes
     for enemy in (e for e in enemy_snakes if len(e['coords']) >= len(our_snake['coords'])):
         x, y = enemy['coords'][0]
-        enemy['coords'].extend([(x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)])
+        enemy['coords'] = [(x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)] + enemy['coords']
 
     print('Our snake', our_snake)
     print('enemy snakes', enemy_snakes)
+
     snakes_coords = itertools.chain(*[x['coords'][0:-1] for x in [our_snake] + enemy_snakes])
-    matrix = np.zeros(shape=(width, height))
+    matrix = np.ones(shape=(width, height))
+
+    center = [math.ceil(height/2), math.ceil(width/2)]
+    maxcost = math.floor(calc_dist([0, 0], center))
+    for x, row in enumerate(matrix):
+        for y, col in enumerate(row):
+            matrix[y][x] += math.floor(calc_dist([y, x], center) / maxcost * 10) + 1
+
     for x, y in snakes_coords:
         if 0 <= x < width and 0 <= y < height:
-            matrix[y][x] = 1
+            if (x, y) in [e['coords'][-1] for e in enemy_snakes]:
+                matrix[y][x] = 1
+            else:
+                matrix[y][x] = 0
+
     return matrix
 
 
