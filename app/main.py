@@ -5,7 +5,7 @@ import itertools
 
 import numpy as np
 
-from astar import astar
+from bstar import MazeSolver
 
 
 @bottle.route('/static/<path:path>')
@@ -41,11 +41,8 @@ def create_matrix(width, height, snakes_coords):
     """
     matrix = np.zeros(shape=(width, height))
     for x, y in snakes_coords:
-        matrix[y - 1, x] = 1
+        matrix[y][x] = 1
     return matrix
-
-def fix_y_coord(point):
-    return (point[0], point[1] - 1)
 
 
 def get_move(start, end):
@@ -78,14 +75,21 @@ def move():
 
     our_snake = next((x for x in data['snakes'] if x['id'] == data['you']), None)
     # our_head = tuple(reversed(fix_y_coord(our_snake['coords'][0])))
-    our_head = tuple(fix_y_coord(our_snake['coords'][0]))
+    our_head = tuple(our_snake['coords'][0])
     print(our_snake)
 
-    next_food = tuple(fix_y_coord(data['food'][0]))
+    next_food = tuple(data['food'][0])
 
-    astar_path = astar(matrix, our_head, next_food)
+    # astar_path = astar(matrix, our_head, next_food)
+    # print(astar_path)
+
+    print('Head', our_head)
+    print('Food', next_food)
+
+    astar_path = list(MazeSolver(data['width'], data['height'], matrix).astar(our_head, next_food))
     print(astar_path)
-    next_coord = astar_path[-1]
+
+    next_coord = astar_path[1]
     move = get_move(our_head, next_coord)
 
     print(move)
