@@ -40,14 +40,15 @@ def start():
     }
 
 
-def create_matrix(width, height, our_snake, enemy_snakes):
+def create_matrix(width, height, our_snake, enemy_snakes, for_attack=False):
     """
     Create two dim array with snakes
     """
     # add possible next head points to enemy snakes
-    for enemy in enemy_snakes:
-        x, y = enemy['coords'][0]
-        enemy['coords'].extend([(x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)])
+    if for_attack:
+        for enemy in enemy_snakes:
+            x, y = enemy['coords'][0]
+            enemy['coords'].extend([(x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)])
 
     print('Our snake', our_snake)
     print('enemy snakes', enemy_snakes)
@@ -138,14 +139,9 @@ def move():
 
     our_snake = next((x for x in data['snakes'] if x['id'] == data['you']), None)
     enemies = [x for x in data['snakes'] if x['id'] != data['you']]
-    matrix = create_matrix(data['width'], data['height'], our_snake, enemies)
-    print(matrix)
-
     our_head = tuple(our_snake['coords'][0])
     print(our_snake)
     print('Head', our_head)
-
-    finder = PathFinder(data['width'], data['height'], matrix)
 
     # check health
     next_coord = None
@@ -154,7 +150,9 @@ def move():
 
     if snake_length >= 10 and int(health) >= 70:
         print('Health point >= 60 -> TRY TO ATTACK')
-        next_coord, taunt = go_for_attack(finder, our_head, our_snake, enemies)
+        attack_matrix = create_matrix(data['width'], data['height'], our_snake, enemies, for_attack=True)
+        attack_finder = PathFinder(data['width'], data['height'], attack_matrix)
+        next_coord, taunt = go_for_attack(attack_finder, our_head, our_snake, enemies)
         # check distance
         if next_coord is not None:
             dist = calc_dist(our_head, next_coord)
@@ -163,7 +161,12 @@ def move():
                 next_coord = None
 
     # fallback to food
+    matrix = None
+    finder = None
     if next_coord is None:
+        matrix = create_matrix(data['width'], data['height'], our_snake, enemies)
+        print(matrix)
+        finder = PathFinder(data['width'], data['height'], matrix)
         next_coord, taunt = go_for_food(finder, our_head, data['food'])
 
     # fallback
