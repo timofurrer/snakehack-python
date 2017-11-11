@@ -66,8 +66,13 @@ def get_move(start, end):
     print('Choose random move')
     return 'up'
 
+
+def calc_dist(a, b):
+    return math.fabs(a[0] - b[0])**2 + math.fabs(a[1] - b[1])**2
+
+
 def get_closest_point(head, foods):
-    return sorted(foods, key=lambda p: math.fabs(head[0] - p[0])**2 + math.fabs(head[1] - p[1])**2)
+    return sorted(foods, key=lambda p: calc_dist(head, p))
 
 
 def go_for_food(finder, head, foods):
@@ -85,9 +90,9 @@ def go_for_food(finder, head, foods):
 
 def go_for_attack(finder, our_head, our_snake, enemies):
     astar_path = None
-    enemy_heads = [x['coords'][0:2] for x in enemies if len(x['coords']) < len(our_snake['coords'])]
-    sorted_enemies = sorted(enemy_heads,
-            key=lambda p: math.fabs(our_head[0] - p[0][0])**2 + math.fabs(our_head[1] - p[0][1])**2)
+    enemy_heads = [x['coords'][0:2] for x in enemies if (len(x['coords']) + 1) < len(our_snake['coords'])]
+    sorted_enemies = sorted(enemy_heads, key=lambda p: calc_dist(our_head, p[0]))
+
     for enemy in sorted_enemies:
         enemy_head, enemy_body = enemy
         predicted_enemy_pos = enemy_head[0] + (enemy_head[0] - enemy_body[0]), enemy_head[1] + (enemy_head[1] - enemy_body[1])
@@ -97,7 +102,7 @@ def go_for_attack(finder, our_head, our_snake, enemies):
 
     try:
         return list(astar_path)[1], 'attack!'
-    except TypeError:
+    except Exception:
         return None, None
 
 
@@ -116,17 +121,23 @@ def move():
     print('Head', our_head)
 
     enemies = [x for x in data['snakes'] if x['id'] != data['you']]
-    print('Enemies', enemies)
 
     finder = PathFinder(data['width'], data['height'], matrix)
 
     # check health
     next_coord = None
     health = our_snake['health_points']
+    snake_length = len(our_snake['coords'])
 
-    if int(health) >= 60:
+    if snake_length >= 5 and int(health) >= 60:
         print('Health point >= 60 -> TRY TO ATTACK')
         next_coord, taunt = go_for_attack(finder, our_head, our_snake, enemies)
+        # check distance
+        if next_coord is not None:
+            dist = calc_dist(our_head, next_coord)
+            print('enemy dist is:', dist)
+            if dist > 3:
+                next_coord = None
 
     if next_coord is None:
         next_coord, taunt = go_for_food(finder, our_head, data['food'])
