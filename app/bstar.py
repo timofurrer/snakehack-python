@@ -2,10 +2,7 @@ from astar import AStar
 import math
 
 
-class MazeSolver(AStar):
-
-    """sample use of the astar algorithm. In this exemple we work on a maze made of ascii characters,
-    and a 'node' is just a (x,y) tuple that represents a reachable position"""
+class PathFinder(AStar):
     def __init__(self, width, height, grid):
         self.grid = grid
         self.width = width
@@ -28,7 +25,6 @@ class MazeSolver(AStar):
         x, y = node
         possible_nodes = [(nx, ny) for nx, ny in [(x, y - 1), (x, y + 1), (x - 1, y), (x + 1, y)]
                 if 0 <= nx < self.width and 0 <= ny < self.height and self.grid[ny][nx] == 0]
-                # if 0 <= nx < self.width and 0 <= ny < self.height and self.grid[nx][ny] == 0]
 
         print('Got node', node)
         print('possible_nodes', possible_nodes)

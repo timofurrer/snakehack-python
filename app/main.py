@@ -1,11 +1,10 @@
 import bottle
 import os
-import random
 import itertools
 
 import numpy as np
 
-from bstar import MazeSolver
+from bstar import PathFinder
 
 
 @bottle.route('/static/<path:path>')
@@ -78,6 +77,8 @@ def move():
     our_head = tuple(our_snake['coords'][0])
     print(our_snake)
 
+    finder = PathFinder(data['width'], data['height'], matrix)
+
     next_food = tuple(data['food'][0])
 
     # astar_path = astar(matrix, our_head, next_food)
@@ -86,7 +87,7 @@ def move():
     print('Head', our_head)
     print('Food', next_food)
 
-    astar_path = list(MazeSolver(data['width'], data['height'], matrix).astar(our_head, next_food))
+    astar_path = list(finder.astar(our_head, next_food))
     print(astar_path)
 
     next_coord = astar_path[1]
