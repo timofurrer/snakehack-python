@@ -43,15 +43,14 @@ def start():
     }
 
 
-def create_matrix(width, height, our_snake, enemy_snakes, for_attack=False):
+def create_matrix(width, height, our_snake, enemy_snakes):
     """
     Create two dim array with snakes
     """
     # add possible next head points to enemy snakes
-    if for_attack:
-        for enemy in enemy_snakes:
-            x, y = enemy['coords'][0]
-            enemy['coords'].extend([(x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)])
+    for enemy in (e for e in enemy_snakes if len(e['coords']) >= len(our_snake['coords'])):
+        x, y = enemy['coords'][0]
+        enemy['coords'].extend([(x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)])
 
     print('Our snake', our_snake)
     print('enemy snakes', enemy_snakes)
@@ -151,11 +150,13 @@ def move():
     health = our_snake['health_points']
     snake_length = len(our_snake['coords'])
 
+    matrix = create_matrix(data['width'], data['height'], our_snake, enemies)
+    finder = PathFinder(data['width'], data['height'], matrix)
+    print(matrix)
+
     if snake_length >= 10 and int(health) >= 70:
         print('Health point >= 60 -> TRY TO ATTACK')
-        attack_matrix = create_matrix(data['width'], data['height'], our_snake, enemies, for_attack=True)
-        attack_finder = PathFinder(data['width'], data['height'], attack_matrix)
-        next_coord, taunt = go_for_attack(attack_finder, our_head, our_snake, enemies)
+        next_coord, taunt = go_for_attack(finder, our_head, our_snake, enemies)
         # check distance
         if next_coord is not None:
             dist = calc_dist(our_head, next_coord)
@@ -164,12 +165,7 @@ def move():
                 next_coord = None
 
     # fallback to food
-    matrix = None
-    finder = None
     if next_coord is None:
-        matrix = create_matrix(data['width'], data['height'], our_snake, enemies)
-        print(matrix)
-        finder = PathFinder(data['width'], data['height'], matrix)
         next_coord, taunt = go_for_food(finder, our_head, data['food'])
 
     # fallback
