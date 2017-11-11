@@ -3,6 +3,7 @@ import os
 import itertools
 import random
 import math
+import time
 
 import numpy as np
 
@@ -109,6 +110,7 @@ def go_for_attack(finder, our_head, our_snake, enemies):
 
 @bottle.post('/move')
 def move():
+    starttime = time.time()
     data = bottle.request.json
 
     print(data)
@@ -157,6 +159,8 @@ def move():
         i += 1
 
     move = get_move(our_head, next_coord)
+
+    print('Duration', (time.time() - starttime) / 1000.0)
 
     return {
         # 'move': random.choice(directions),
