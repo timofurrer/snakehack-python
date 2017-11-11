@@ -63,6 +63,25 @@ def get_move(start, end):
     print('Choose random move')
     return 'up'
 
+#def attack(finder, our_snake, enemies):
+#    """ attacks closest smaller enemy """
+#    # filter only smaller enemies
+#    enemie_heads = [tuple(x['coords'][0]) for x in enemies if len(x['coords']) < len(our_snake['coords'])]
+#    print(enemie_heads)
+#
+#    # TODO: find if path is possible
+#    # find closest enemy
+#    our_head = tuple(our_snake['coords'][0])
+#    closest_enemy = get_closest_food(our_snake, enemie_heads)
+#    print(closest_enemy)
+#    astar_path = list(finder.astar(our_head, closest_enemy))
+#
+#    next_coord = astar_path[1]
+#    move = get_move(our_head, next_coord)
+#
+#    print(move)
+#
+#    return move
 
 def get_closest_food(head, foods):
     return sorted(foods, key=lambda p: math.fabs(head[0] - p[0])**2 + math.fabs(head[1] - p[1])**2)
@@ -73,6 +92,20 @@ def go_for_food(finder, head, foods):
     sorted_foods = get_closest_food(head, foods)
     for food in sorted_foods:
         astar_path = finder.astar(head, tuple(food))
+        if astar_path is not None:
+            break
+
+    return list(astar_path)[1]
+
+
+def go_for_attack(finder, our_snake, enemies):
+    astar_path = None
+    head = tuple(our_snake['coords'][0])
+    enemie_heads = [tuple(x['coords'][0]) for x in enemies if len(x['coords']) < len(our_snake['coords'])]
+    print(enemie_heads)
+    sorted_enemies = get_closest_food(head, enemie_heads)
+    for enemie in sorted_enemies:
+        astar_path = finder.astar(head, tuple(enemie))
         if astar_path is not None:
             break
 
@@ -94,11 +127,13 @@ def move():
     print(our_snake)
     print('Head', our_head)
 
-    finder = PathFinder(data['width'], data['height'], matrix)
-    next_coord = go_for_food(finder, our_head, data['food'])
-    move = get_move(our_head, next_coord)
+    enemies = [x for x in data['snakes'] if x['id'] != data['you']]
+    print(enemies)
 
-    print(move)
+    finder = PathFinder(data['width'], data['height'], matrix)
+#    next_coord = go_for_food(finder, our_head, data['food'])
+    next_coord = go_for_attack(finder, our_snake, enemies)
+    move = get_move(our_head, next_coord)
 
     return {
         # 'move': random.choice(directions),
