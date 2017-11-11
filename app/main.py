@@ -3,6 +3,7 @@ import os
 import itertools
 import random
 import math
+import time
 
 import numpy as np
 
@@ -91,7 +92,7 @@ def go_for_food(finder, head, foods):
 
 def go_for_attack(finder, our_head, our_snake, enemies):
     astar_path = None
-    enemy_heads = [x['coords'][0:2] for x in enemies if (len(x['coords']) + 1) < len(our_snake['coords'])]
+    enemy_heads = [x['coords'][0:2] for x in enemies if (len(x['coords']) + 3) < len(our_snake['coords'])]
     sorted_enemies = sorted(enemy_heads, key=lambda p: calc_dist(our_head, p[0]))
 
     for enemy in sorted_enemies:
@@ -122,6 +123,7 @@ def go_for_attack(finder, our_head, our_snake, enemies):
 
 @bottle.post('/move')
 def move():
+    starttime = time.time()
     data = bottle.request.json
 
     print(data)
@@ -143,7 +145,7 @@ def move():
     health = our_snake['health_points']
     snake_length = len(our_snake['coords'])
 
-    if snake_length >= 10 and int(health) >= 60:
+    if snake_length >= 10 and int(health) >= 70:
         print('Health point >= 60 -> TRY TO ATTACK')
         next_coord, taunt = go_for_attack(finder, our_head, our_snake, enemies)
         # check distance
@@ -170,6 +172,8 @@ def move():
         i += 1
 
     move = get_move(our_head, next_coord)
+
+    print('Duration', (time.time() - starttime) / 1000.0)
 
     return {
         # 'move': random.choice(directions),
