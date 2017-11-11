@@ -1,6 +1,7 @@
 import bottle
 import os
 import itertools
+import random
 import math
 
 import numpy as np
@@ -139,8 +140,21 @@ def move():
             if dist > 3:
                 next_coord = None
 
+    # fallback to food
     if next_coord is None:
         next_coord, taunt = go_for_food(finder, our_head, data['food'])
+
+    # fallback
+    i = 0
+    while next_coord is None and i <= 300:
+        print('Do random shit as fallback')
+        random_target = random.randint(0, data['width'] - 1), random.randint(0, data['height'] - 1)
+        try:
+            next_coord = list(finder.astar(our_head, random_target))[1]
+        except Exception:
+            next_coord = None
+        taunt = 'do random shit'
+        i += 1
 
     move = get_move(our_head, next_coord)
 
